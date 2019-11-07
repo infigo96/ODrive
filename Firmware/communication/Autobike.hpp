@@ -11,7 +11,7 @@ namespace AutoBike {
 
     };
 	struct returnValue {
-		unsigned enums;
+		unsigned data;
 		char end = 0;
 	};
 }

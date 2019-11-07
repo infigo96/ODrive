@@ -112,25 +112,31 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
         Axis* axis = axes[Labview->axis];
 
         switch(1) {
-            case 0:
+            case 0: //Check and clear errors 
             {
                 AutoBike::returnValue retError = {static_cast<unsigned>(axis->error_), 0};
                 respond(response_channel, use_checksum, reinterpret_cast<char*>(&retError));
+
                 axis->error_ = static_cast<Axis::Error_t>((axis->error_) & !(Labview->clearError));
+                
+                AutoBike::returnValue retError = {static_cast<unsigned>(axis->error_), 0};
+                respond(response_channel, use_checksum, reinterpret_cast<char*>(&retError));
                 break;
             }
-            case 1:
+            case 1: //Change the running state. 
             {
                 axis->requested_state_ = static_cast<Axis::State_t>(Labview->value);
+                AutoBike::returnValue retData = {static_cast<unsigned>(axis->requested_state_), 0};
+                respond(response_channel, use_checksum, reinterpret_cast<char*>(&retData));
                 break;
             }
-            case 4: 
+            case 4: //Position control, Same as 't' trajectory
             {  
                 axis->controller_.move_to_pos(Labview->value);
                 axis->watchdog_feed();
                 break;
             }
-            case 5: 
+            case 5: //Ramped velocity, has no standard UART function implemented.
             {
                 axis->controller_.set_vel_ramptarget(Labview->value);
                 axis->watchdog_feed();
