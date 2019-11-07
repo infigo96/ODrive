@@ -115,11 +115,11 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             case 0:
             {
 
-                axis->error_ &= !(Labview->clearError);
+                axis->error_ = static_cast<Axis::Error_t>((axis->error_) & !(Labview->clearError));
             }
             case 1:
             {
-<                axis->requested_state_ = Labview->value;
+                axis->requested_state_ = static_cast<Axis::State_t>(Labview->value);
                 break;
             }
             case 4: 
@@ -134,7 +134,8 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 axis->watchdog_feed();
                 break;
             }
-            default: 
+            default:
+                break;
         }
 
 
