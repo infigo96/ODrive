@@ -41,6 +41,7 @@ public:
 
     void set_pos_setpoint(float pos_setpoint, float vel_feed_forward, float current_feed_forward);
     void set_vel_setpoint(float vel_setpoint, float current_feed_forward);
+    void set_vel_ramptarget(float vel_ramp_target);
     void set_current_setpoint(float current_setpoint);
 
     // Trajectory-Planned control

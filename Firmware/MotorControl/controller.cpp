@@ -11,6 +11,7 @@ void Controller::reset() {
     vel_setpoint_ = 0.0f;
     vel_integrator_current_ = 0.0f;
     current_setpoint_ = 0.0f;
+    vel_ramp_target_ = 0.0f;
 }
 
 void Controller::set_error(Error_t error) {
@@ -38,6 +39,15 @@ void Controller::set_vel_setpoint(float vel_setpoint, float current_feed_forward
     config_.control_mode = CTRL_MODE_VELOCITY_CONTROL;
 #ifdef DEBUG_PRINT
     printf("VELOCITY_CONTROL %3.3f %3.3f\n", vel_setpoint_, motor->current_setpoint_);
+#endif
+}
+
+void Controller::set_vel_ramptarget(float vel_ramp_target) {
+    vel_ramp_target_ = vel_ramp_target;
+    config_.vel_ramp_enable = true; 
+    config_.control_mode = CTRL_MODE_VELOCITY_CONTROL;
+#ifdef DEBUG_PRINT
+    printf("VELOCITY_RAMP_CONTROL %3.3f \n", vel_ramp_target_);
 #endif
 }
 
