@@ -115,11 +115,12 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             case 0:
             {
 
-                axis->error_ &= !(Labview->clearError);
+                axis->error_ = (Labview->clearError) ? ERROR_NONE : axis->error_;
+                break;
             }
             case 1:
             {
-<                axis->requested_state_ = Labview->value;
+                axis->requested_state_ = (State_t) Labview->value;
                 break;
             }
             case 4: 
@@ -135,6 +136,9 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 break;
             }
             default: 
+            {
+                break;
+            }
         }
 
 
