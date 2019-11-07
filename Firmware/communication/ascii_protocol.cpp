@@ -108,23 +108,24 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
 
         //Our special Labview sauce %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	} else if (cmd[0] == 'a') {
-		AutoBike::dataPacket* data = reinterpret_cast <AutoBike::dataPacket*>(&cmd[1]);
+		AutoBike::dataPacket* Labview = reinterpret_cast <AutoBike::dataPacket*>(&cmd[1]);
         switch(1) {
             case 4: 
             {  
-                Axis* axis = axes[data->axis];
-                axis->controller_.move_to_pos(data->value);
+                Axis* axis = axes[Labview->axis];
+                axis->controller_.move_to_pos(Labview->value);
                 axis->watchdog_feed();
                 break;
             }
             case 5: 
             {
-                Axis* axis = axes[data->axis];
-                axis->controller_.set_vel_ramptarget(data->value);
+                Axis* axis = axes[Labview->axis];
+                axis->controller_.set_vel_ramptarget(Labview->value);
                 axis->watchdog_feed();
+                break;
             }
             default: 
-        
+        }
 
 
     } else if (cmd[0] == 'q') { // position control with limits
