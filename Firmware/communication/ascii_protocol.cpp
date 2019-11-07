@@ -109,17 +109,27 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
         //Our special Labview sauce %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	} else if (cmd[0] == 'a') {
 		AutoBike::dataPacket* Labview = reinterpret_cast <AutoBike::dataPacket*>(&cmd[1]);
+        Axis* axis = axes[Labview->axis];
+
         switch(1) {
+            case 0:
+            {
+
+                axis->error_ &= !(Labview->clearError);
+            }
+            case 1:
+            {
+<                axis->requested_state_ = Labview->value;
+                break;
+            }
             case 4: 
             {  
-                Axis* axis = axes[Labview->axis];
                 axis->controller_.move_to_pos(Labview->value);
                 axis->watchdog_feed();
                 break;
             }
             case 5: 
             {
-                Axis* axis = axes[Labview->axis];
                 axis->controller_.set_vel_ramptarget(Labview->value);
                 axis->watchdog_feed();
                 break;
