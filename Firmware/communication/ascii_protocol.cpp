@@ -13,6 +13,7 @@
 #include "ascii_protocol.hpp"
 #include <utils.h>
 #include <fibre/cpp_utils.hpp>
+#include "Autobike.hpp"
 
 /* Private macros ------------------------------------------------------------*/
 /* Private typedef -----------------------------------------------------------*/
@@ -103,6 +104,12 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             axis->controller_.set_pos_setpoint(pos_setpoint, vel_feed_forward, current_feed_forward);
             axis->watchdog_feed();
         }
+	} else if (cmd[0] == 'a') {
+		AutoBike::dataPacket* data = reinterpret_cast <AutoBike::dataPacket*>(&cmd[1]);
+        
+        
+        Axis* axis = axes[data->axis];
+
 
     } else if (cmd[0] == 'q') { // position control with limits
         unsigned motor_number;
