@@ -114,8 +114,8 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
         switch(1) {
             case 0:
             {
-
                 axis->error_ = static_cast<Axis::Error_t>((axis->error_) & !(Labview->clearError));
+                break;
             }
             case 1:
             {
