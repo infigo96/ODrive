@@ -106,7 +106,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
         }
 
 
-        //Our special Labview sauce %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        //Our special Labview sauce %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	} else if (cmd[0] == 'a') {
 		AutoBike::dataPacket* Labview = reinterpret_cast <AutoBike::dataPacket*>(&cmd[1]);
         Axis* axis = axes[Labview->axis];
@@ -114,6 +114,8 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
         switch(1) {
             case 0:
             {
+                AutoBike::returnValue retError = {static_cast<unsigned>(axis->error_), 0};
+                respond(response_channel, use_checksum, reinterpret_cast<char*>(&retError));
                 axis->error_ = static_cast<Axis::Error_t>((axis->error_) & !(Labview->clearError));
                 break;
             }

@@ -10,5 +10,10 @@ namespace AutoBike {
 		int16_t value;
 
     };
+	struct returnValue {
+		unsigned enums;
+		char end = 0;
+	};
 }
+
 #endif /* __AUTOBIKE_H */
