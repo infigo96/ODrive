@@ -7,7 +7,7 @@ namespace AutoBike {
 		uint8_t clearError :1;
 		uint8_t junk :3;
 		
-		int16_t value
+		int16_t value;
 
     };
 }
