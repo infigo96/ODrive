@@ -111,24 +111,40 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
 		AutoBike::dataPacket* Labview = reinterpret_cast <AutoBike::dataPacket*>(&cmd[1]);
         Axis* axis = axes[Labview->axis];
 
-        switch(1) {
-            case 0: //Check and clear errors 
+        switch(Labview->action) {
+            case 0: //Update watchdog manually, if no update of velocity/position then this should update the watchdog
             {
-                AutoBike::returnValue retError = {static_cast<unsigned>(axis->error_), 0};
-                respond(response_channel, use_checksum, reinterpret_cast<char*>(&retError));
+                (axes[0])->watchdog_feed();
+                (axes[1])->watchdog_feed();
+                break;
+            }
+            case AutoBike::CHECK_ERROR: //Check and clear errors (if clear is set)
+            {
+                AutoBike::returnValue retError = {AutoBike::CHECK_ERROR,Labview->axis,0,0,static_cast<int>(axis->error_), 0};
+                //respond(response_channel, use_checksum, reinterpret_cast<char*>(&retError));
 
                 axis->error_ = static_cast<Axis::Error_t>((axis->error_) & !(Labview->clearError));
                 
-                AutoBike::returnValue retError = {static_cast<unsigned>(axis->error_), 0};
+                if(axis->error_ == ERROR_NONE)
+                {
+                    retError.NoError = 1;
+                }
                 respond(response_channel, use_checksum, reinterpret_cast<char*>(&retError));
                 break;
             }
-            case 1: //Change the running state. 
+            case AutoBike::REQUEST_STATE: //Change the running state. 
             {
                 axis->requested_state_ = static_cast<Axis::State_t>(Labview->value);
-                AutoBike::returnValue retData = {static_cast<unsigned>(axis->requested_state_), 0};
+                AutoBike::returnValue retData = {Autobieke::REQUEST_STATE, Labview->axis,0,0,static_cast<int>(axis->requested_state_), 0};
                 respond(response_channel, use_checksum, reinterpret_cast<char*>(&retData));
                 break;
+            }
+            case 3: //send back current velocity and position
+            {
+                int ax0pos = static_cast<int>axes[0]->encoder_.pos_estimate_;
+
+                int ax1vel = static_cast<int>axes[1]->encoder_.vel_estimate_;
+                break; 
             }
             case 4: //Position control, Same as 't' trajectory
             {  
