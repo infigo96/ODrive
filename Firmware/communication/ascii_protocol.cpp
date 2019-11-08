@@ -139,20 +139,22 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 respond(response_channel, use_checksum, reinterpret_cast<char*>(&retData));
                 break;
             }
-            case 3: //send back current velocity and position
+            case AutoBike::FEEDBACK: //send back current velocity and position
             {
-                int ax0pos = static_cast<int>axes[0]->encoder_.pos_estimate_;
+                int ax0 = static_cast<int>axes[0]->encoder_.pos_estimate_;                
+                int ax1 = static_cast<int>axes[1]->encoder_.vel_estimate_;
+                AutoBike::returnValue retFeed[2] = {{AutoBike::CHECK_ERROR,1,0,0,ax0,0},{AutoBike::CHECK_ERROR,1,0,0,ax1,0}};
+                respond(response_channel, use_checksum, reinterpret_cast<char*>(&retFeed[0]));
 
-                int ax1vel = static_cast<int>axes[1]->encoder_.vel_estimate_;
                 break; 
             }
-            case 4: //Position control, Same as 't' trajectory
+            case AutoBike::TRAJECTORY: //Position control, Same as 't' trajectory
             {  
                 axis->controller_.move_to_pos(Labview->value);
                 axis->watchdog_feed();
                 break;
             }
-            case 5: //Ramped velocity, has no standard UART function implemented.
+            case AutoBike::RAMPEDVEL: //Ramped velocity, has no standard UART function implemented.
             {
                 axis->controller_.set_vel_ramptarget(Labview->value);
                 axis->watchdog_feed();

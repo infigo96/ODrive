@@ -5,10 +5,10 @@ namespace AutoBike {
 
 	static const uint8_t CHECK_ERROR = 1;
 	static const uint8_t REQUEST_STATE = 2;
-	static const uint8_t CHECK_ERROR = 1;
-	static const uint8_t CHECK_ERROR = 1;
-	static const uint8_t CHECK_ERROR = 1;
-	static const uint8_t CHECK_ERROR = 1;
+	static const uint8_t FEEDBACK = 1;
+	static const uint8_t TRAJECTORY = 1;
+	static const uint8_t RAMPEDVEL = 1;
+	static const uint8_t SPARE = 1;
 
 
     struct dataPacket {
