@@ -125,7 +125,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
 
                 axis->error_ = static_cast<Axis::Error_t>((axis->error_) & !(Labview->clearError));
                 
-                if(axis->error_ == Motor::ERROR_NONE)
+                if(axis->error_ == Axis::ERROR_NONE)
                 {
                     retError.NoError = 1;
                 }
@@ -135,7 +135,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             case AutoBike::REQUEST_STATE: //Change the running state. 
             {
                 axis->requested_state_ = static_cast<Axis::State_t>(Labview->value);
-                AutoBike::returnValue retData = {Autobike::REQUEST_STATE, Labview->axis,0,0,static_cast<int>(axis->requested_state_), 0};
+                AutoBike::returnValue retData = {AutoBike::REQUEST_STATE, Labview->axis,0,0,static_cast<int>(axis->requested_state_), 0};
                 respond(response_channel, use_checksum, reinterpret_cast<char*>(&retData));
                 break;
             }
