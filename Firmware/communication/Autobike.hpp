@@ -3,12 +3,13 @@
 
 namespace AutoBike {
 
+	static const uint8_t WATCHDOG = 0;
 	static const uint8_t CHECK_ERROR = 1;
 	static const uint8_t REQUEST_STATE = 2;
-	static const uint8_t FEEDBACK = 1;
-	static const uint8_t TRAJECTORY = 1;
-	static const uint8_t RAMPEDVEL = 1;
-	static const uint8_t SPARE = 1;
+	static const uint8_t FEEDBACK = 3;
+	static const uint8_t TRAJECTORY = 4;
+	static const uint8_t RAMPEDVEL = 5;
+	static const uint8_t SPARE = 6;
 
 
     struct dataPacket {

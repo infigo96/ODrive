@@ -112,7 +112,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
         Axis* axis = axes[Labview->axis];
 
         switch(Labview->action) {
-            case 0: //Update watchdog manually, if no update of velocity/position then this should update the watchdog
+            case AutoBike::WATCHDOG: //Update watchdog manually, if no update of velocity/position then this should update the watchdog
             {
                 (axes[0])->watchdog_feed();
                 (axes[1])->watchdog_feed();
@@ -125,7 +125,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
 
                 axis->error_ = static_cast<Axis::Error_t>((axis->error_) & !(Labview->clearError));
                 
-                if(axis->error_ == ERROR_NONE)
+                if(axis->error_ == Motor::ERROR_NONE)
                 {
                     retError.NoError = 1;
                 }
@@ -135,14 +135,14 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             case AutoBike::REQUEST_STATE: //Change the running state. 
             {
                 axis->requested_state_ = static_cast<Axis::State_t>(Labview->value);
-                AutoBike::returnValue retData = {Autobieke::REQUEST_STATE, Labview->axis,0,0,static_cast<int>(axis->requested_state_), 0};
+                AutoBike::returnValue retData = {Autobike::REQUEST_STATE, Labview->axis,0,0,static_cast<int>(axis->requested_state_), 0};
                 respond(response_channel, use_checksum, reinterpret_cast<char*>(&retData));
                 break;
             }
             case AutoBike::FEEDBACK: //send back current velocity and position
             {
-                int ax0 = static_cast<int>axes[0]->encoder_.pos_estimate_;                
-                int ax1 = static_cast<int>axes[1]->encoder_.vel_estimate_;
+                int ax0 = static_cast<int>(axes[0]->encoder_.pos_estimate_);                
+                int ax1 = static_cast<int>(axes[1]->encoder_.vel_estimate_);
                 AutoBike::returnValue retFeed[2] = {{AutoBike::CHECK_ERROR,1,0,0,ax0,0},{AutoBike::CHECK_ERROR,1,0,0,ax1,0}};
                 respond(response_channel, use_checksum, reinterpret_cast<char*>(&retFeed[0]));
 
