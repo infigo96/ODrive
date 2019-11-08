@@ -106,7 +106,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
         }
 
 
-        //Our special Labview sauce %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        //Our special Labview sauce. Ascii is hard to do on FPGA so this handle all controll using binary flags and numbers
 	} else if (cmd[0] == 'a') {
 		AutoBike::dataPacket* Labview = reinterpret_cast <AutoBike::dataPacket*>(&cmd[1]);
         Axis* axis = axes[Labview->axis];
@@ -143,6 +143,8 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             {
                 int ax0 = static_cast<int>(axes[0]->encoder_.pos_estimate_);                
                 int ax1 = static_cast<int>(axes[1]->encoder_.vel_estimate_);
+                (axes[0])->watchdog_feed();
+                (axes[1])->watchdog_feed();
                 AutoBike::returnValue retFeed[2] = {{AutoBike::CHECK_ERROR,1,0,0,ax0,0},{AutoBike::CHECK_ERROR,1,0,0,ax1,0}};
                 respond(response_channel, use_checksum, reinterpret_cast<char*>(&retFeed[0]));
 
