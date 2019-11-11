@@ -12,7 +12,8 @@ namespace AutoBike {
 	static const uint8_t SPARE = 6;
 
 
-    struct dataPacket {
+    struct dataPacket 
+	{
 		uint8_t action :3;
 		uint8_t axis :1;
 		uint8_t clearError :1;
@@ -21,11 +22,12 @@ namespace AutoBike {
 		int16_t value;
 
     };
-	struct returnValue {
+	struct returnValue 
+	{
 		uint8_t action :3;
 		uint8_t axis :1;
-		uint8_t NoError :1;
-		uint8_t spare :3;
+		uint8_t NoError :2;
+		uint8_t spare :2;
 
 		int data;
 		char end = 0;

@@ -120,34 +120,53 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             }
             case AutoBike::CHECK_ERROR: //Check and clear errors (if clear is set)
             {
-                AutoBike::returnValue retError = {AutoBike::CHECK_ERROR,Labview->axis,0,0,static_cast<int>(axis->error_), 0};
+                AutoBike::returnValue retData = {AutoBike::CHECK_ERROR,Labview->axis,0,0,static_cast<int>(axis->error_), 0};
                 //respond(response_channel, use_checksum, reinterpret_cast<char*>(&retError));
 
                 axis->error_ = static_cast<Axis::Error_t>((axis->error_) & !(Labview->clearError));
                 
-                if(axis->error_ == Axis::ERROR_NONE)
+                if(axis[0]->error_ != Axis::ERROR_NONE)
                 {
-                    retError.NoError = 1;
+                    retData.Error |= 1;
                 }
-                respond(response_channel, use_checksum, reinterpret_cast<char*>(&retError));
+                if(axis[1]->error_ != Axis::ERROR_NONE)
+                {
+                    retData.Error |= 2;
+                }
+                respond(response_channel, use_checksum, reinterpret_cast<char*>(&retData));
                 break;
             }
             case AutoBike::REQUEST_STATE: //Change the running state. 
             {
                 axis->requested_state_ = static_cast<Axis::State_t>(Labview->value);
                 AutoBike::returnValue retData = {AutoBike::REQUEST_STATE, Labview->axis,0,0,static_cast<int>(axis->requested_state_), 0};
+
+                if(axis[0]->error_ != Axis::ERROR_NONE)
+                {
+                    retData.Error |= 1;
+                }
+                if(axis[1]->error_ != Axis::ERROR_NONE)
+                {
+                    retData.Error |= 2;
+                }
                 respond(response_channel, use_checksum, reinterpret_cast<char*>(&retData));
                 break;
             }
             case AutoBike::FEEDBACK: //send back current velocity and position
             {
-                int ax0 = static_cast<int>(axes[0]->encoder_.pos_estimate_);                
-                int ax1 = static_cast<int>(axes[1]->encoder_.vel_estimate_);
+                int16_t ax[2] = {static_cast<int16_t>(axes[0]->encoder_.pos_estimate_),static_cast<int16_t>(axes[1]->encoder_.vel_estimate_)};                
                 (axes[0])->watchdog_feed();
                 (axes[1])->watchdog_feed();
-                AutoBike::returnValue retFeed[2] = {{AutoBike::CHECK_ERROR,1,0,0,ax0,0},{AutoBike::CHECK_ERROR,1,0,0,ax1,0}};
-                respond(response_channel, use_checksum, reinterpret_cast<char*>(&retFeed[0]));
-
+                AutoBike::returnValue retFeed = {AutoBike::FEEDBACK,0,tError,0,*reinterpret_cast<int*>(ax),0};
+                if(axis[0]->error_ != Axis::ERROR_NONE)
+                {
+                    retData.Error |= 1;
+                }
+                if(axis[1]->error_ != Axis::ERROR_NONE)
+                {
+                    retData.Error |= 2;
+                }
+                respond(response_channel, use_checksum, reinterpret_cast<char*>(&retFeed));
                 break; 
             }
             case AutoBike::TRAJECTORY: //Position control, Same as 't' trajectory
@@ -162,8 +181,10 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 axis->watchdog_feed();
                 break;
             }
-            default:
+            default:s
+            {
                 break;
+            }
         }
 
 
