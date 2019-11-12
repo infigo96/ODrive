@@ -125,11 +125,11 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
 
                 axis->error_ = static_cast<Axis::Error_t>((axis->error_) & !(Labview->clearError));
                 
-                if(axis[0]->error_ != Axis::ERROR_NONE)
+                if(axes[0]->error_ != Axis::ERROR_NONE)
                 {
                     retData.Error |= 1;
                 }
-                if(axis[1]->error_ != Axis::ERROR_NONE)
+                if(axes[1]->error_ != Axis::ERROR_NONE)
                 {
                     retData.Error |= 2;
                 }
@@ -141,11 +141,11 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 axis->requested_state_ = static_cast<Axis::State_t>(Labview->value);
                 AutoBike::returnValue retData = {AutoBike::REQUEST_STATE, Labview->axis,0,0,static_cast<int>(axis->requested_state_), 0};
 
-                if(axis[0]->error_ != Axis::ERROR_NONE)
+                if(axes[0]->error_ != Axis::ERROR_NONE)
                 {
                     retData.Error |= 1;
                 }
-                if(axis[1]->error_ != Axis::ERROR_NONE)
+                if(axes[1]->error_ != Axis::ERROR_NONE)
                 {
                     retData.Error |= 2;
                 }
@@ -157,16 +157,16 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 int16_t ax[2] = {static_cast<int16_t>(axes[0]->encoder_.pos_estimate_),static_cast<int16_t>(axes[1]->encoder_.vel_estimate_)};                
                 (axes[0])->watchdog_feed();
                 (axes[1])->watchdog_feed();
-                AutoBike::returnValue retFeed = {AutoBike::FEEDBACK,0,tError,0,*reinterpret_cast<int*>(ax),0};
-                if(axis[0]->error_ != Axis::ERROR_NONE)
+                AutoBike::returnValue retData = {AutoBike::FEEDBACK,0,tError,0,*reinterpret_cast<int*>(ax),0};
+                if(axes[0]->error_ != Axis::ERROR_NONE)
                 {
                     retData.Error |= 1;
                 }
-                if(axis[1]->error_ != Axis::ERROR_NONE)
+                if(axes[1]->error_ != Axis::ERROR_NONE)
                 {
                     retData.Error |= 2;
                 }
-                respond(response_channel, use_checksum, reinterpret_cast<char*>(&retFeed));
+                respond(response_channel, use_checksum, reinterpret_cast<char*>(&retData));
                 break; 
             }
             case AutoBike::TRAJECTORY: //Position control, Same as 't' trajectory
@@ -181,7 +181,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 axis->watchdog_feed();
                 break;
             }
-            default:s
+            default:
             {
                 break;
             }
