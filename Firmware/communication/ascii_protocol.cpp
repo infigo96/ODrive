@@ -157,7 +157,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 int16_t ax[2] = {static_cast<int16_t>(axes[0]->encoder_.pos_estimate_),static_cast<int16_t>(axes[1]->encoder_.vel_estimate_)};                
                 (axes[0])->watchdog_feed();
                 (axes[1])->watchdog_feed();
-                AutoBike::returnValue retData = {AutoBike::FEEDBACK,0,tError,0,*reinterpret_cast<int*>(ax),0};
+                AutoBike::returnValue retData = {AutoBike::FEEDBACK,0,0,0,*reinterpret_cast<int*>(ax),0};
                 if(axes[0]->error_ != Axis::ERROR_NONE)
                 {
                     retData.Error |= 1;
