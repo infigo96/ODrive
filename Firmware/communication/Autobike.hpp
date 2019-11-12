@@ -26,7 +26,7 @@ namespace AutoBike {
 	{
 		uint8_t action :3;
 		uint8_t axis :1;
-		uint8_t NoError :2;
+		uint8_t Error :2;
 		uint8_t spare :2;
 
 		int data;
