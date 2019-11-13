@@ -150,6 +150,22 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                     retData.Error |= 2;
                 }
                 respond(response_channel, use_checksum, reinterpret_cast<char*>(&retData));
+                break; 
+            }
+            case AutoBike::STATE_FEEDBACK: //send back current axis states
+            {
+                int16_t ax[2] = {static_cast<int16_t>(axes[0]->current_state_),static_cast<int16_t>(axes[1]->current_state_)};                
+                
+                AutoBike::returnValue retData = {AutoBike::STATE_FEEDBACK,0,0,0,*reinterpret_cast<int*>(ax),0};
+                if(axes[0]->error_ != Axis::ERROR_NONE)
+                {
+                    retData.Error |= 1;
+                }
+                if(axes[1]->error_ != Axis::ERROR_NONE)
+                {
+                    retData.Error |= 2;
+                }
+                respond(response_channel, use_checksum, reinterpret_cast<char*>(&retData));
                 break;
             }
             case AutoBike::FEEDBACK: //send back current velocity and position
