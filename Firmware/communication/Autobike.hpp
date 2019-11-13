@@ -30,7 +30,7 @@ namespace AutoBike {
 		uint8_t Error :2;
 		uint8_t spare :2;
 
-		int data;
+		int32_t data;
 		char endB; // \0 for ending a string
 	};
 }
