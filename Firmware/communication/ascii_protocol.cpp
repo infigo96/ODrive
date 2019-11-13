@@ -120,8 +120,8 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             }
             case AutoBike::CHECK_ERROR: //Check and clear errors (if clear is set)
             {
-                AutoBike::returnValue retData = {170,AutoBike::CHECK_ERROR,Labview->axis,0,0,static_cast<int>(axis->error_), 0};
-                //respond(response_channel, use_checksum, reinterpret_cast<char*>(&retError));
+                int16_t ax[2] = {static_cast<int16_t>(axes[0]->error_),static_cast<int16_t>(axes[1]->error_)};                
+                AutoBike::returnValue retData = {170,AutoBike::CHECK_ERROR,0,0,0,*reinterpret_cast<int*>(ax), 0};
 
                 axis->error_ = static_cast<Axis::Error_t>((axis->error_) & !(Labview->clearError));
                 
@@ -139,9 +139,9 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             case AutoBike::REQUEST_STATE: //Change the running state. 
             {
                 axis->requested_state_ = static_cast<Axis::State_t>(Labview->value);
-                int16_t ax[2] = {static_cast<int16_t>(axes[0]->current_state_),static_cast<int16_t>(axes[1]->current_state_)};                
 
-                AutoBike::returnValue retData = {170,AutoBike::REQUEST_STATE, Labview->axis,0,0,*reinterpret_cast<int*>(ax), 0};
+                int16_t ax[2] = {static_cast<int16_t>(axes[0]->current_state_),static_cast<int16_t>(axes[1]->current_state_)};                
+                AutoBike::returnValue retData = {170,AutoBike::REQUEST_STATE, 0,0,0,*reinterpret_cast<int*>(ax), 0};
 
                 if(axes[0]->error_ != Axis::ERROR_NONE)
                 {
