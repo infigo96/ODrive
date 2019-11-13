@@ -24,13 +24,14 @@ namespace AutoBike {
     };
 	struct returnValue 
 	{
+		uint8_t startB;
 		uint8_t action :3;
 		uint8_t axis :1;
 		uint8_t Error :2;
 		uint8_t spare :2;
 
 		int data;
-		char end = 0;
+		char endB; // \0 for ending a string
 	};
 }
 

@@ -120,7 +120,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             }
             case AutoBike::CHECK_ERROR: //Check and clear errors (if clear is set)
             {
-                AutoBike::returnValue retData = {AutoBike::CHECK_ERROR,Labview->axis,0,0,static_cast<int>(axis->error_), 0};
+                AutoBike::returnValue retData = {170,AutoBike::CHECK_ERROR,Labview->axis,0,0,static_cast<int>(axis->error_), 0};
                 //respond(response_channel, use_checksum, reinterpret_cast<char*>(&retError));
 
                 axis->error_ = static_cast<Axis::Error_t>((axis->error_) & !(Labview->clearError));
@@ -139,7 +139,9 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             case AutoBike::REQUEST_STATE: //Change the running state. 
             {
                 axis->requested_state_ = static_cast<Axis::State_t>(Labview->value);
-                AutoBike::returnValue retData = {AutoBike::REQUEST_STATE, Labview->axis,0,0,static_cast<int>(axis->requested_state_), 0};
+                int16_t ax[2] = {static_cast<int16_t>(axes[0]->current_state_),static_cast<int16_t>(axes[1]->current_state_)};                
+
+                AutoBike::returnValue retData = {170,AutoBike::REQUEST_STATE, Labview->axis,0,0,*reinterpret_cast<int*>(ax), 0};
 
                 if(axes[0]->error_ != Axis::ERROR_NONE)
                 {
@@ -156,7 +158,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             {
                 int16_t ax[2] = {static_cast<int16_t>(axes[0]->current_state_),static_cast<int16_t>(axes[1]->current_state_)};                
                 
-                AutoBike::returnValue retData = {AutoBike::STATE_FEEDBACK,0,0,0,*reinterpret_cast<int*>(ax),0};
+                AutoBike::returnValue retData = {170,AutoBike::STATE_FEEDBACK,0,0,0,*reinterpret_cast<int*>(ax),0};
                 if(axes[0]->error_ != Axis::ERROR_NONE)
                 {
                     retData.Error |= 1;
@@ -173,7 +175,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 int16_t ax[2] = {static_cast<int16_t>(axes[0]->encoder_.pos_estimate_),static_cast<int16_t>(axes[1]->encoder_.vel_estimate_)};                
                 (axes[0])->watchdog_feed();
                 (axes[1])->watchdog_feed();
-                AutoBike::returnValue retData = {AutoBike::FEEDBACK,0,0,0,*reinterpret_cast<int*>(ax),0};
+                AutoBike::returnValue retData = {170,AutoBike::FEEDBACK,0,0,0,*reinterpret_cast<int*>(ax),0};
                 if(axes[0]->error_ != Axis::ERROR_NONE)
                 {
                     retData.Error |= 1;
