@@ -45,6 +45,11 @@ void respond(StreamSink& output, bool include_checksum, const char * fmt, TArgs&
     output.process_bytes((const uint8_t*)"\r\n", 2, nullptr);
 }
 
+void binaryRespond(StreamSink& output, const void* data, size_t len) 
+    {  
+        output.process_bytes((uint8_t*)data, len, nullptr); // TODO: use process_all instead
+   }
+
 
 // @brief Executes an ASCII protocol command
 // @param buffer buffer of ASCII encoded characters
@@ -121,7 +126,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             case AutoBike::CHECK_ERROR: //Check and clear errors (if clear is set)
             {
                 int16_t ax[2] = {static_cast<int16_t>(axes[0]->error_),static_cast<int16_t>(axes[1]->error_)};                
-                AutoBike::returnValue retData = {170,AutoBike::CHECK_ERROR,0,0,0,*reinterpret_cast<int32_t*>(ax), 0};
+                AutoBike::returnValue retData = {170,AutoBike::CHECK_ERROR,0,0,0,*reinterpret_cast<int32_t*>(ax)};
 
                 axis->error_ = static_cast<Axis::Error_t>((axis->error_) & !(Labview->clearError));
                 
@@ -133,7 +138,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 {
                     retData.Error |= 2;
                 }
-                respond(response_channel, use_checksum, reinterpret_cast<char*>(&retData));
+                binaryRespond(response_channel, &retData, sizeof(AutoBike::returnValue));
                 break;
             }
             case AutoBike::REQUEST_STATE: //Change the running state. 
@@ -141,7 +146,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 axis->requested_state_ = static_cast<Axis::State_t>(Labview->value);
 
                 int16_t ax[2] = {static_cast<int16_t>(axes[0]->current_state_),static_cast<int16_t>(axes[1]->current_state_)};                
-                AutoBike::returnValue retData = {170,AutoBike::REQUEST_STATE, 0,0,0,*reinterpret_cast<int32_t*>(ax), 0};
+                AutoBike::returnValue retData = {170,AutoBike::REQUEST_STATE, 0,0,0,*reinterpret_cast<int32_t*>(ax)};
 
                 if(axes[0]->error_ != Axis::ERROR_NONE)
                 {
@@ -151,14 +156,14 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 {
                     retData.Error |= 2;
                 }
-                respond(response_channel, use_checksum, reinterpret_cast<char*>(&retData));
+                binaryRespond(response_channel, &retData, sizeof(AutoBike::returnValue));
                 break; 
             }
             case AutoBike::STATE_FEEDBACK: //send back current axis states
             {
                 int16_t ax[2] = {static_cast<int16_t>(axes[0]->current_state_),static_cast<int16_t>(axes[1]->current_state_)};                
                 
-                AutoBike::returnValue retData = {170,AutoBike::STATE_FEEDBACK,0,0,0,*reinterpret_cast<int32_t*>(ax),0};
+                AutoBike::returnValue retData = {170,AutoBike::STATE_FEEDBACK,0,0,0,*reinterpret_cast<int32_t*>(ax)};
                 if(axes[0]->error_ != Axis::ERROR_NONE)
                 {
                     retData.Error |= 1;
@@ -167,7 +172,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 {
                     retData.Error |= 2;
                 }
-                respond(response_channel, use_checksum, reinterpret_cast<char*>(&retData));
+                binaryRespond(response_channel, &retData, sizeof(AutoBike::returnValue));
                 break;
             }
             case AutoBike::FEEDBACK: //send back current velocity and position
@@ -175,7 +180,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 int16_t ax[2] = {static_cast<int16_t>(axes[0]->encoder_.pos_estimate_),static_cast<int16_t>(axes[1]->encoder_.vel_estimate_)};                
                 (axes[0])->watchdog_feed();
                 (axes[1])->watchdog_feed();
-                AutoBike::returnValue retData = {170,AutoBike::FEEDBACK,0,0,0,*reinterpret_cast<int32_t*>(ax),0};
+                AutoBike::returnValue retData = {170,AutoBike::FEEDBACK,0,0,0,*reinterpret_cast<int32_t*>(ax)};
                 if(axes[0]->error_ != Axis::ERROR_NONE)
                 {
                     retData.Error |= 1;
@@ -184,7 +189,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 {
                     retData.Error |= 2;
                 }
-                respond(response_channel, use_checksum, reinterpret_cast<char*>(&retData));
+                binaryRespond(response_channel, &retData, sizeof(AutoBike::returnValue));
                 break; 
             }
             case AutoBike::TRAJECTORY: //Position control, Same as 't' trajectory
