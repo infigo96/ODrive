@@ -30,7 +30,8 @@ namespace AutoBike {
 		uint8_t Error :2;
 		uint8_t spare :2;
 
-		int32_t data;
+		int16_t data;
+		int16_t data2;
 	};
 }
 
