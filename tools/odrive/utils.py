@@ -6,6 +6,7 @@ import threading
 import platform
 import subprocess
 import os
+import numpy as np
 from fibre.utils import Event
 from odrive.enums import errors
 
@@ -60,15 +61,9 @@ def dump_errors(odrv, clear=False):
             else:
                 print(prefix + _VT100Colors['green'] + "no error" + _VT100Colors['default'])
 
-def oscilloscope_dump(odrv, num_vals, filename='oscilloscope.csv'):
-    with open(filename, 'w') as f:
-        for x in range(num_vals):
-            f.write(str(odrv.get_oscilloscope_val(x)))
-            f.write('\n')
-
-data_rate = 10
-plot_rate = 10
-num_samples = 1000
+data_rate = 100
+plot_rate = 100
+num_samples = 10000
 def start_liveplotter(get_var_callback):
     """
     Starts a liveplotter.
@@ -82,9 +77,12 @@ def start_liveplotter(get_var_callback):
     cancellation_token = Event()
 
     global vals
+    global timi
     vals = []
+    timi = []
     def fetch_data():
         global vals
+        global timi
         while not cancellation_token.is_set():
             try:
                 data = get_var_callback()
@@ -93,9 +91,20 @@ def start_liveplotter(get_var_callback):
                 time.sleep(1)
                 continue
             vals.append(data)
+            timi.append(int(round(time.time()*1000)))
             if len(vals) > num_samples:
                 vals = vals[-num_samples:]
+                timi = timi[-num_samples:]
+
             time.sleep(1/data_rate)
+
+        dataT = np.array(timi)
+        data = np.array(vals)
+        np.savetxt('C:/Users/hampu/Music/DataT.csv', dataT, delimiter=',')
+        np.savetxt('C:/Users/hampu/Music/Data.csv', data, delimiter=',')
+
+        print("I hope I saved your shitting data")
+        #print(data)
 
     # TODO: use animation for better UI performance, see:
     # https://matplotlib.org/examples/animation/simple_anim.html
