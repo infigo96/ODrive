@@ -33,6 +33,17 @@ namespace AutoBike {
 		int16_t data;
 		int16_t data2;
 	};
+	struct returnDebug 
+	{
+		uint8_t startB;
+		uint8_t action;
+		uint8_t axis;
+		uint8_t Error;
+		uint8_t spare;
+
+		int16_t data;
+		int16_t data2;
+	};
 }
 
 #endif /* __AUTOBIKE_H */

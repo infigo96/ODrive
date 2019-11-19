@@ -115,6 +115,9 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
 	} else if (cmd[0] == 'a') {
 		AutoBike::dataPacket* Labview = reinterpret_cast <AutoBike::dataPacket*>(&cmd[1]);
         Axis* axis = axes[Labview->axis];
+        AutoBike::returnDebug retValua = {170,Labview->action,Labview->axis,Labview->clearError,Labview->spare,Labview->value,0};
+        binaryRespond(response_channel, &retData, sizeof(AutoBike::returnValue));
+
 
         switch(Labview->action) {
             case AutoBike::WATCHDOG: //Update watchdog manually, if no update of velocity/position then this should update the watchdog
