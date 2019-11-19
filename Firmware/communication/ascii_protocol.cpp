@@ -194,13 +194,13 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             }
             case AutoBike::TRAJECTORY: //Position control, Same as 't' trajectory
             {  
-                axis->controller_.move_to_pos(Labview->value);
+                axis->controller_.move_to_pos(static_cast<float>(Labview->value));
                 axis->watchdog_feed();
                 break;
             }
             case AutoBike::RAMPEDVEL: //Ramped velocity, has no standard UART function implemented.
             {
-                axis->controller_.set_vel_ramptarget(Labview->value);
+                axis->controller_.set_vel_ramptarget(static_cast<float>(Labview->value));
                 axis->watchdog_feed();
                 break;
             }
