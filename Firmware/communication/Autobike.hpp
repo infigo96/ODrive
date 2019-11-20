@@ -14,10 +14,10 @@ namespace AutoBike {
 
     struct dataPacket 
 	{
-		uint8_t action :3;
-		uint8_t axis :1;
-		uint8_t clearError :1;
-		uint8_t spare :3;
+		uint8_t action;
+		uint8_t axis;
+		uint8_t clearError;
+		uint8_t spare;
 		
 		int16_t value;
 
