@@ -119,7 +119,9 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
         Labview.clearError = (cmd[1] & 0b00010000) >> 4;
         Labview.spare = (cmd[1] & 0b11100000) >> 5;
         
-        Labview.value = *(int16_t*)(cmd+2);
+        //Labview.value = *(int16_t*)(cmd+2);
+        ((char*)&Labview.value)[0] = cmd[2];
+        ((char*)&Labview.value)[1] = cmd[3];
 
 
         Axis* axis = axes[Labview.axis];
