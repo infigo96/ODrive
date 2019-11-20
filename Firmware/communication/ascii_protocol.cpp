@@ -113,7 +113,17 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
 
         //Our special Labview sauce. Ascii is hard to do on FPGA so this handle all controll using binary flags and numbers
 	} else if (cmd[0] == 'a') {
-		AutoBike::dataPacket* Labview = reinterpret_cast <AutoBike::dataPacket*>(&cmd[1]);
+
+        AutoBike::dataPacket Labview;
+        Labview.action = cmd[1] & 0b00000111;
+        Labview.axis   = (cmd[1] & 0b00001000) >> 3;
+        Labview.clearError = (cmd[1] & 0b00010000) >> 4;
+        Labview.spare = (cmd[1] & 0b11100000) >> 5;
+        
+        //Labview.value = *(int16_t*)(cmd+2);
+        ((char*)&Labview.value)[0] = cmd[2];
+        ((char*)&Labview.value)[1] = cmd[3];
+
         Axis* axis = axes[Labview->axis];
 
         switch(Labview->action) {
@@ -128,7 +138,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 int16_t ax[2] = {static_cast<int16_t>(axes[0]->error_),static_cast<int16_t>(axes[1]->error_)};                
                 AutoBike::returnValue retData = {170,AutoBike::CHECK_ERROR,0,0,0,ax[0],ax[1]};
 
-                if (Labview->clearError != 0) axis->error_ = Axis::Error_t::ERROR_NONE;
+                if (Labview->clearError != 0) axis->controller_.error_ = Axis::Error_t::ERROR_NONE;
                 
                 if(axes[0]->error_ != Axis::ERROR_NONE)
                 {
