@@ -60,16 +60,18 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
     // scan line to find beginning of checksum and prune comment
     uint8_t checksum = 0;
     size_t checksum_start = SIZE_MAX;
-    for (size_t i = 0; i < len; ++i) {
-        if (buffer[i] == ';') { // ';' is the comment start char
-            len = i;
-            break;
-        }
-        if (checksum_start > i) {
-            if (buffer[i] == '*') {
-                checksum_start = i + 1;
-            } else {
-                checksum ^= buffer[i];
+    if (buffer[0] != 'a') {
+        for (size_t i = 0; i < len; ++i) {
+            if (buffer[i] == ';') { // ';' is the comment start char
+                len = i;
+                break;
+            }
+            if (checksum_start > i) {
+                if (buffer[i] == '*') {
+                    checksum_start = i + 1;
+                } else {
+                    checksum ^= buffer[i];
+                }
             }
         }
     }
@@ -113,8 +115,9 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
 
         //Our special Labview sauce. Ascii is hard to do on FPGA so this handle all controll using binary flags and numbers
 	} else if (cmd[0] == 'a') {
+
 		AutoBike::dataPacket Labview;
-        Labview.action = static_cast<uint8_t> (cmd[1]) & static_cast<uint8_t>(0b00000111);
+        Labview.action = cmd[1] & 0b00000111;
         Labview.axis   = (cmd[1] & 0b00001000) >> 3;
         Labview.clearError = (cmd[1] & 0b00010000) >> 4;
         Labview.spare = (cmd[1] & 0b11100000) >> 5;
@@ -129,6 +132,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
         binaryRespond(response_channel, &retValua, sizeof(AutoBike::returnDebug));
 
 
+
         switch(Labview.action) {
             case AutoBike::WATCHDOG: //Update watchdog manually, if no update of velocity/position then this should update the watchdog
             {
@@ -141,8 +145,14 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 int16_t ax[2] = {static_cast<int16_t>(axes[0]->error_),static_cast<int16_t>(axes[1]->error_)};                
                 AutoBike::returnValue retData = {170,AutoBike::CHECK_ERROR,Labview.axis,0,Labview.clearError,ax[0],ax[1]};
 
-                if (Labview.clearError != 0) axis->error_ = Axis::Error_t::ERROR_NONE;
-                
+                if (Labview.clearError != 0)
+                {
+                     axis->error_ = Axis::Error_t::ERROR_NONE;
+                     axis->motor_.error_ = Motor::Error_t::ERROR_NONE;
+                     axis->encoder_.error_ = Encoder::Error_t::ERROR_NONE;
+                     axis->controller_.error_ = Controller::Error_t::ERROR_NONE;
+                }
+
                 if(axes[0]->error_ != Axis::ERROR_NONE)
                 {
                     retData.Error |= 1;
@@ -207,7 +217,9 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             }
             case AutoBike::TRAJECTORY: //Position control, Same as 't' trajectory
             {  
+
                 AutoBike::returnValue retData = {170,AutoBike::TRAJECTORY,Labview.axis,Labview.clearError,0,Labview.value,Labview.value};
+
                 axis->controller_.move_to_pos(static_cast<float>(Labview.value));
                 axis->watchdog_feed();
                 binaryRespond(response_channel, &retData, sizeof(AutoBike::returnValue));
@@ -216,6 +228,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             case AutoBike::RAMPEDVEL: //Ramped velocity, has no standard UART function implemented.
             {
                 AutoBike::returnValue retData = {170,AutoBike::RAMPEDVEL,Labview.axis,Labview.clearError,0,Labview.value,Labview.value};
+
                 axis->controller_.set_vel_ramptarget(static_cast<float>(Labview.value));
                 axis->watchdog_feed();
                 binaryRespond(response_channel, &retData, sizeof(AutoBike::returnValue));
@@ -406,7 +419,7 @@ void ASCII_protocol_parse_stream(const uint8_t* buffer, size_t len, StreamSink& 
 
         // Fetch the next char
         uint8_t c = *(buffer++);
-        bool is_end_of_line = (c == '\r' || c == '\n' || c == '!');
+        bool is_end_of_line = (parse_buffer[0] != 'a' && (c == '\r' || c == '\n' || c == '!')) || (parse_buffer[0] == 'a' && parse_buffer_idx == 4);
         if (is_end_of_line) {
             if (read_active)
                 ASCII_protocol_process_line(parse_buffer, parse_buffer_idx, response_channel);
