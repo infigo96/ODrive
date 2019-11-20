@@ -138,8 +138,13 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 int16_t ax[2] = {static_cast<int16_t>(axes[0]->error_),static_cast<int16_t>(axes[1]->error_)};                
                 AutoBike::returnValue retData = {170,AutoBike::CHECK_ERROR,0,0,0,ax[0],ax[1]};
 
-                if (Labview.clearError != 0) axis->error_ = Axis::Error_t::ERROR_NONE;
-                
+                if (Labview.clearError != 0)
+                {
+                     axis->error_ = Axis::Error_t::ERROR_NONE;
+                     axis->motor_.error_ = Motor::Error_t::ERROR_NONE;
+                     axis->encoder_.error_ = Encoder::Error_t::ERROR_NONE;
+                     axis->controller_.error_ = Controller::Error_t::ERROR_NONE;
+                }
                 if(axes[0]->error_ != Axis::ERROR_NONE)
                 {
                     retData.Error |= 1;
