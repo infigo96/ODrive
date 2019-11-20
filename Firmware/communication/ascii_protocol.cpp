@@ -124,9 +124,9 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
         ((char*)&Labview.value)[0] = cmd[2];
         ((char*)&Labview.value)[1] = cmd[3];
 
-        Axis* axis = axes[Labview->axis];
+        Axis* axis = axes[Labview.axis];
 
-        switch(Labview->action) {
+        switch(Labview.action) {
             case AutoBike::WATCHDOG: //Update watchdog manually, if no update of velocity/position then this should update the watchdog
             {
                 (axes[0])->watchdog_feed();
@@ -138,7 +138,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 int16_t ax[2] = {static_cast<int16_t>(axes[0]->error_),static_cast<int16_t>(axes[1]->error_)};                
                 AutoBike::returnValue retData = {170,AutoBike::CHECK_ERROR,0,0,0,ax[0],ax[1]};
 
-                if (Labview->clearError != 0) axis->controller_.error_ = Axis::Error_t::ERROR_NONE;
+                if (Labview.clearError != 0) axis->controller_.error_ = Axis::Error_t::ERROR_NONE;
                 
                 if(axes[0]->error_ != Axis::ERROR_NONE)
                 {
@@ -153,7 +153,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             }
             case AutoBike::REQUEST_STATE: //Change the running state. 
             {
-                axis->requested_state_ = static_cast<Axis::State_t>(Labview->value);
+                axis->requested_state_ = static_cast<Axis::State_t>(Labview.value);
 
                 int16_t ax[2] = {static_cast<int16_t>(axes[0]->current_state_),static_cast<int16_t>(axes[1]->current_state_)};                
                 AutoBike::returnValue retData = {170,AutoBike::REQUEST_STATE, 0,0,0,ax[0],ax[1]};
@@ -204,13 +204,13 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             }
             case AutoBike::TRAJECTORY: //Position control, Same as 't' trajectory
             {  
-                axis->controller_.move_to_pos(static_cast<float>(Labview->value));
+                axis->controller_.move_to_pos(static_cast<float>(Labview.value));
                 axis->watchdog_feed();
                 break;
             }
             case AutoBike::RAMPEDVEL: //Ramped velocity, has no standard UART function implemented.
             {
-                axis->controller_.set_vel_ramptarget(static_cast<float>(Labview->value));
+                axis->controller_.set_vel_ramptarget(static_cast<float>(Labview.value));
                 axis->watchdog_feed();
                 break;
             }
