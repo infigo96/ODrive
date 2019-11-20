@@ -60,16 +60,18 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
     // scan line to find beginning of checksum and prune comment
     uint8_t checksum = 0;
     size_t checksum_start = SIZE_MAX;
-    for (size_t i = 0; i < len; ++i) {
-        if (buffer[i] == ';') { // ';' is the comment start char
-            len = i;
-            break;
-        }
-        if (checksum_start > i) {
-            if (buffer[i] == '*') {
-                checksum_start = i + 1;
-            } else {
-                checksum ^= buffer[i];
+    if (buffer[0] != 'a') {
+        for (size_t i = 0; i < len; ++i) {
+            if (buffer[i] == ';') { // ';' is the comment start char
+                len = i;
+                break;
+            }
+            if (checksum_start > i) {
+                if (buffer[i] == '*') {
+                    checksum_start = i + 1;
+                } else {
+                    checksum ^= buffer[i];
+                }
             }
         }
     }
@@ -402,7 +404,7 @@ void ASCII_protocol_parse_stream(const uint8_t* buffer, size_t len, StreamSink& 
 
         // Fetch the next char
         uint8_t c = *(buffer++);
-        bool is_end_of_line = (c == '\r' || c == '\n' || c == '!');
+        bool is_end_of_line = (parse_buffer[0] != 'a' && (c == '\r' || c == '\n' || c == '!')) || (parse_buffer[0] == 'a' && parse_buffer_idx == 4);
         if (is_end_of_line) {
             if (read_active)
                 ASCII_protocol_process_line(parse_buffer, parse_buffer_idx, response_channel);
