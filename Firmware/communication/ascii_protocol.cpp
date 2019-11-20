@@ -114,7 +114,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
         //Our special Labview sauce. Ascii is hard to do on FPGA so this handle all controll using binary flags and numbers
 	} else if (cmd[0] == 'a') {
 		AutoBike::dataPacket Labview;
-        Labview.action = cmd[1] & 0b00000111;
+        Labview.action = static_cast<uint8_t> (cmd[1]) & static_cast<uint8_t>(0b00000111);
         Labview.axis   = (cmd[1] & 0b00001000) >> 3;
         Labview.clearError = (cmd[1] & 0b00010000) >> 4;
         Labview.spare = (cmd[1] & 0b11100000) >> 5;
@@ -123,8 +123,8 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
         ((char*)&Labview.value)[0] = cmd[2];
         ((char*)&Labview.value)[1] = cmd[3];
 
-
         Axis* axis = axes[Labview.axis];
+
         AutoBike::returnDebug retValua = {170,Labview.action,Labview.axis,Labview.clearError,Labview.spare,Labview.value,0};
         binaryRespond(response_channel, &retValua, sizeof(AutoBike::returnDebug));
 
@@ -223,7 +223,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             }
             default:
             {
-                AutoBike::returnValue retData = {170,7,Labview.axis,Labview.clearError,0,Labview.value,Labview.value};
+                AutoBike::returnValue retData = {170,7,Labview.axis,Labview.clearError,0,Labview.value,Labview.value + 256};
                 binaryRespond(response_channel, &retData, sizeof(AutoBike::returnValue));
                 break;
             }
