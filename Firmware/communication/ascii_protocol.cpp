@@ -210,6 +210,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 AutoBike::returnValue retData = {170,AutoBike::TRAJECTORY,Labview.axis,Labview.clearError,0,Labview.value,Labview.value};
                 axis->controller_.move_to_pos(static_cast<float>(Labview.value));
                 axis->watchdog_feed();
+                binaryRespond(response_channel, &retData, sizeof(AutoBike::returnValue));
                 break;
             }
             case AutoBike::RAMPEDVEL: //Ramped velocity, has no standard UART function implemented.
