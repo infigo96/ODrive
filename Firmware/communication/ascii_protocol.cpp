@@ -116,7 +116,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
         //Our special Labview sauce. Ascii is hard to do on FPGA so this handle all controll using binary flags and numbers
 	} else if (cmd[0] == 'a') {
 
-        AutoBike::dataPacket Labview;
+		AutoBike::dataPacket Labview;
         Labview.action = cmd[1] & 0b00000111;
         Labview.axis   = (cmd[1] & 0b00001000) >> 3;
         Labview.clearError = (cmd[1] & 0b00010000) >> 4;
@@ -128,6 +128,11 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
 
         Axis* axis = axes[Labview.axis];
 
+        AutoBike::returnDebug retValua = {170,Labview.action,Labview.axis,Labview.clearError,Labview.spare,Labview.value,0};
+        binaryRespond(response_channel, &retValua, sizeof(AutoBike::returnDebug));
+
+
+
         switch(Labview.action) {
             case AutoBike::WATCHDOG: //Update watchdog manually, if no update of velocity/position then this should update the watchdog
             {
@@ -138,7 +143,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             case AutoBike::CHECK_ERROR: //Check and clear errors (if clear is set)
             {
                 int16_t ax[2] = {static_cast<int16_t>(axes[0]->error_),static_cast<int16_t>(axes[1]->error_)};                
-                AutoBike::returnValue retData = {170,AutoBike::CHECK_ERROR,0,0,0,ax[0],ax[1]};
+                AutoBike::returnValue retData = {170,AutoBike::CHECK_ERROR,Labview.axis,0,Labview.clearError,ax[0],ax[1]};
 
                 if (Labview.clearError != 0)
                 {
@@ -147,6 +152,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                      axis->encoder_.error_ = Encoder::Error_t::ERROR_NONE;
                      axis->controller_.error_ = Controller::Error_t::ERROR_NONE;
                 }
+
                 if(axes[0]->error_ != Axis::ERROR_NONE)
                 {
                     retData.Error |= 1;
@@ -163,7 +169,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 axis->requested_state_ = static_cast<Axis::State_t>(Labview.value);
 
                 int16_t ax[2] = {static_cast<int16_t>(axes[0]->current_state_),static_cast<int16_t>(axes[1]->current_state_)};                
-                AutoBike::returnValue retData = {170,AutoBike::REQUEST_STATE, 0,0,0,ax[0],ax[1]};
+                AutoBike::returnValue retData = {170,AutoBike::REQUEST_STATE, Labview.axis,0,0,ax[0],ax[1]};
 
                 if(axes[0]->error_ != Axis::ERROR_NONE)
                 {
@@ -211,18 +217,27 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             }
             case AutoBike::TRAJECTORY: //Position control, Same as 't' trajectory
             {  
+
+                AutoBike::returnValue retData = {170,AutoBike::TRAJECTORY,Labview.axis,Labview.clearError,0,Labview.value,Labview.value};
+
                 axis->controller_.move_to_pos(static_cast<float>(Labview.value));
                 axis->watchdog_feed();
+                binaryRespond(response_channel, &retData, sizeof(AutoBike::returnValue));
                 break;
             }
             case AutoBike::RAMPEDVEL: //Ramped velocity, has no standard UART function implemented.
             {
+                AutoBike::returnValue retData = {170,AutoBike::RAMPEDVEL,Labview.axis,Labview.clearError,0,Labview.value,Labview.value};
+
                 axis->controller_.set_vel_ramptarget(static_cast<float>(Labview.value));
                 axis->watchdog_feed();
+                binaryRespond(response_channel, &retData, sizeof(AutoBike::returnValue));
                 break;
             }
             default:
             {
+                AutoBike::returnValue retData = {170,7,Labview.axis,Labview.clearError,0,Labview.value,Labview.value + 256};
+                binaryRespond(response_channel, &retData, sizeof(AutoBike::returnValue));
                 break;
             }
         }
