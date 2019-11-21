@@ -215,8 +215,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             {
                 retData.action = 7;
                 retData.axis = Labview->axis;
-                retData.Error = Labview->clearError;
-                retData.spare = Labview->spare;
+                retData.spare = Labview->clearError;
                 retData.data = Labview->value;
                 break;
             }
