@@ -48,6 +48,7 @@ void respond(StreamSink& output, bool include_checksum, const char * fmt, TArgs&
     output.process_bytes((const uint8_t*)"\r\n", 2, nullptr);
 }
 
+//Handle the output data as is and do not think it is ASCII.
 void binaryRespond(StreamSink& output, const void* data, size_t len) 
     {  
         output.process_bytes((uint8_t*)data, len, nullptr); // TODO: use process_all instead
@@ -95,7 +96,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
     }
 
 
-#ifdef DEBUG_
+#ifdef DEBUG_   //Return action for debugging if DEBUG_ is defined
     respond(response_channel, use_checksum, "HELLO %c", cmd[0]);
 #endif
 
@@ -127,7 +128,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
         AutoBike::dataPacket* Labview = reinterpret_cast<AutoBike::dataPacket*>(cmd);
         
 
-    #ifdef DEBUG_
+    #ifdef DEBUG_   //Return the same package for debugging if DEBUG_ is defined
         binaryRespond(response_channel, Labview, sizeof(AutoBike::dataPacket));
     #endif
 
@@ -211,16 +212,17 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
 
                 break;
             }
-            default:
+            default:    //Send back of all input information back to user for debugging
             {
-                retData.action = 7;
+                retData.action = AutoBike::DEFAULT;
                 retData.axis = Labview->axis;
                 retData.spare = Labview->clearError;
                 retData.data = Labview->value;
                 break;
             }
         }
-        if(axes[0]->error_ != Axis::ERROR_NONE)
+
+        if(axes[0]->error_ != Axis::ERROR_NONE) //Sets the two error flags of there is an error on that axis
         {
             retData.Error |= 1;
         }
@@ -410,7 +412,8 @@ void ASCII_protocol_parse_stream(const uint8_t* buffer, size_t len, StreamSink& 
         if (read_active) {
             parse_buffer[parse_buffer_idx++] = c;
         }
-        
+        //The regular end of line is modified to only care about EOL character if the first byte is not 'a'. 
+        //If it's 'a' we take care of 4 bytes inside ascii process line. 
         bool is_end_of_line = (parse_buffer[0] != 'a' && (c == '\r' || c == '\n' || c == '!')) || (parse_buffer[0] == 'a' && parse_buffer_idx == 4);
         
         if (is_end_of_line) {
