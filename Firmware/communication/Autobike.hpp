@@ -10,14 +10,17 @@ namespace AutoBike {
 	static const uint8_t FEEDBACK = 4;
 	static const uint8_t TRAJECTORY = 5;
 	static const uint8_t RAMPEDVEL = 6;
+	static const uint8_t DEFAULT = 7;
 
 
     struct dataPacket 
-	{
-		uint8_t action;
-		uint8_t axis;
-		uint8_t clearError;
-		uint8_t spare;
+	{   
+        uint8_t startB;
+
+		uint8_t action: 3;
+		uint8_t axis: 1;
+		uint8_t clearError: 1;
+		uint8_t spare: 3;
 		
 		int16_t value;
 
