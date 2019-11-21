@@ -80,7 +80,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
     }
 
     // copy everything into a local buffer so we can insert null-termination
-    char cmd[MAX_LINE_LENGTH + 1];
+    char cmd[MAX_LINE_LENGTH + 1] __attribute__((aligned(sizeof(uint16_t))));
     if (len > MAX_LINE_LENGTH) len = MAX_LINE_LENGTH;
     memcpy(cmd, buffer, len);
 
@@ -124,28 +124,21 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
         //Our special Labview sauce. Ascii is hard to do on FPGA so this handle all controll using binary flags and numbers
 	} else if (cmd[0] == 'a') {
 
-        AutoBike::dataPacket Labview;
-        Labview.action = cmd[1] & 0b00000111;
-        Labview.axis   = (cmd[1] & 0b00001000) >> 3;
-        Labview.clearError = (cmd[1] & 0b00010000) >> 4;
-        Labview.spare = (cmd[1] & 0b11100000) >> 5;
-        
-        //Labview.value = *(int16_t*)(cmd+2);
-        ((char*)&Labview.value)[0] = cmd[2];
-        ((char*)&Labview.value)[1] = cmd[3];
+        AutoBike::dataPacket* Labview = reinterpret_cast<AutoBike::dataPacket*>(cmd);
         
 
     #ifdef DEBUG_
-        binaryRespond(response_channel, &Labview, sizeof(AutoBike::dataPacket));
+        binaryRespond(response_channel, Labview, sizeof(AutoBike::dataPacket));
     #endif
 
 
 
 
-        Axis* axis = axes[Labview.axis];
+        Axis* axis = axes[Labview->axis];
         AutoBike::returnValue retData = {170,0,0,0,0,0,0};
 
-        switch(Labview.action) {
+
+        switch(Labview->action) {
             case AutoBike::WATCHDOG: //Update watchdog manually, if no update of velocity/position then this should update the watchdog
             {
                 (axes[0])->watchdog_feed();
@@ -158,7 +151,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 retData.data = static_cast<int16_t>(axes[0]->error_);
                 retData.data2 = static_cast<int16_t>(axes[1]->error_);
 
-                if (Labview.clearError != 0)
+                if (Labview->clearError != 0)
                 {
                      axis->error_ = Axis::Error_t::ERROR_NONE;
                      axis->motor_.error_ = Motor::Error_t::ERROR_NONE;
@@ -170,7 +163,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             }
             case AutoBike::REQUEST_STATE: //Change the running state. 
             {
-                axis->requested_state_ = static_cast<Axis::State_t>(Labview.value);
+                axis->requested_state_ = static_cast<Axis::State_t>(Labview->value);
 
                 retData.action = AutoBike::REQUEST_STATE;
                 retData.data = static_cast<int16_t>(axes[0]->current_state_);
@@ -198,29 +191,33 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             }
             case AutoBike::TRAJECTORY: //Position control, Same as 't' trajectory
             {  
-                axis->controller_.move_to_pos(static_cast<float>(Labview.value));
+
+                axis->controller_.move_to_pos(static_cast<float>(Labview->value));
 
                 (axes[0])->watchdog_feed();
                 (axes[1])->watchdog_feed();
                 retData.action = AutoBike::TRAJECTORY;
+
                 break;
             }
             case AutoBike::RAMPEDVEL: //Ramped velocity, has no standard UART function implemented.
             {
-                axis->controller_.set_vel_ramptarget(static_cast<float>(Labview.value));
+
+                axis->controller_.set_vel_ramptarget(static_cast<float>(Labview->value));
                 
                 (axes[0])->watchdog_feed();
                 (axes[1])->watchdog_feed();
                 retData.action = AutoBike::RAMPEDVEL;
+
                 break;
             }
             default:
             {
                 retData.action = 7;
-                retData.axis = Labview.axis;
-                retData.Error = Labview.clearError;
-                retData.spare = Labview.spare;
-                retData.data = Labview.value;
+                retData.axis = Labview->axis;
+                retData.Error = Labview->clearError;
+                retData.spare = Labview->spare;
+                retData.data = Labview->value;
                 break;
             }
 
@@ -400,7 +397,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
 }
 
 void ASCII_protocol_parse_stream(const uint8_t* buffer, size_t len, StreamSink& response_channel) {
-    static uint8_t parse_buffer[MAX_LINE_LENGTH];
+    static uint8_t parse_buffer[MAX_LINE_LENGTH] __attribute__((aligned(sizeof(uint16_t))));
     static bool read_active = true;
     static uint32_t parse_buffer_idx = 0;
 
