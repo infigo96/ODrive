@@ -220,19 +220,16 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 retData.data = Labview->value;
                 break;
             }
-
-            if(axes[0]->error_ != Axis::ERROR_NONE)
-                {
-                    retData.Error |= 1;
-                }
-                if(axes[1]->error_ != Axis::ERROR_NONE)
-                {
-                    retData.Error |= 2;
-                }
-            binaryRespond(response_channel, &retData, sizeof(AutoBike::returnValue));
-
         }
-
+        if(axes[0]->error_ != Axis::ERROR_NONE)
+        {
+            retData.Error |= 1;
+        }
+        if(axes[1]->error_ != Axis::ERROR_NONE)
+        {
+        retData.Error |= 2;
+        }
+        binaryRespond(response_channel, &retData, sizeof(AutoBike::returnValue));
 
     } else if (cmd[0] == 'q') { // position control with limits
         unsigned motor_number;
