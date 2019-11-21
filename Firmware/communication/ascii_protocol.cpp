@@ -25,6 +25,9 @@
 #define TO_STR_INNER(s) #s
 #define TO_STR(s) TO_STR_INNER(s)
 
+//#define DEBUG_
+
+
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 /* Function implementations --------------------------------------------------*/
@@ -91,6 +94,11 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
         len = checksum_start - 1; // prune checksum and asterisk
     }
 
+
+#ifdef DEBUG_
+    respond(response_channel, use_checksum, "HELLO %c", cmd[0]);
+#endif
+
     cmd[len] = 0; // null-terminate
 
     // check incoming packet type
@@ -125,6 +133,14 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
         //Labview.value = *(int16_t*)(cmd+2);
         ((char*)&Labview.value)[0] = cmd[2];
         ((char*)&Labview.value)[1] = cmd[3];
+        
+
+    #ifdef DEBUG_
+        binaryRespond(response_channel, &Labview, sizeof(AutoBike::dataPacket));
+    #endif
+
+
+
 
         Axis* axis = axes[Labview.axis];
 
@@ -404,16 +420,20 @@ void ASCII_protocol_parse_stream(const uint8_t* buffer, size_t len, StreamSink& 
 
         // Fetch the next char
         uint8_t c = *(buffer++);
+        
+        if (read_active) {
+            parse_buffer[parse_buffer_idx++] = c;
+        }
+        
         bool is_end_of_line = (parse_buffer[0] != 'a' && (c == '\r' || c == '\n' || c == '!')) || (parse_buffer[0] == 'a' && parse_buffer_idx == 4);
+        
         if (is_end_of_line) {
             if (read_active)
-                ASCII_protocol_process_line(parse_buffer, parse_buffer_idx, response_channel);
+                ASCII_protocol_process_line(parse_buffer, parse_buffer_idx - (parse_buffer[0] != 'a'), response_channel);
             parse_buffer_idx = 0;
             read_active = true;
-        } else {
-            if (read_active) {
-                parse_buffer[parse_buffer_idx++] = c;
-            }
-        }
+        } 
+            
+        
     }
 }
