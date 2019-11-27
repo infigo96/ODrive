@@ -177,6 +177,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 retData.action = AutoBike::STATE_FEEDBACK;
                 retData.data = static_cast<int16_t>(axes[0]->current_state_);
                 retData.data2 = static_cast<int16_t>(axes[1]->current_state_);
+                retData.spare = axes[1]->encoder_.is_ready_;
                 break;
             }
             case AutoBike::FEEDBACK: //send back current velocity and position
@@ -228,7 +229,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
         }
         if(axes[1]->error_ != Axis::ERROR_NONE)
         {
-        retData.Error |= 2;
+            retData.Error |= 2;
         }
         binaryRespond(response_channel, &retData, sizeof(AutoBike::returnValue));
 
