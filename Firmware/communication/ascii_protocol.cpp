@@ -194,7 +194,8 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
             case AutoBike::TRAJECTORY: //Position control, Same as 't' trajectory
             {  
 
-                axis->controller_.move_to_pos(static_cast<float>(Labview->value));
+                //axis->controller_.move_to_pos(static_cast<float>(Labview->value));
+                axis->controller_.set_pos_setpoint(static_cast<float>(Labview->value),0.0f,0.0f);
 
                 (axes[0])->watchdog_feed();
                 (axes[1])->watchdog_feed();
