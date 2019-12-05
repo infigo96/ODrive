@@ -30,7 +30,7 @@ public:
         float vel_integrator_gain = 10.0f / 10000.0f;  // [A/(counts/s * s)]
         float vel_limit = 20000.0f;        // [counts/s]
         float vel_limit_tolerance = 1.2f;  // ratio to vel_lim. 0.0f to disable
-        bool vel_ramp_enable = false;
+        bool vel_ramp_enable = true;
         float vel_ramp_rate = 10000.0f;  // [(counts/s) / s]
         bool setpoints_in_cpr = false;
     };

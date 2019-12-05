@@ -186,7 +186,7 @@ void ASCII_protocol_process_line(const uint8_t* buffer, size_t len, StreamSink& 
                 (axes[1])->watchdog_feed();
                 retData.action = AutoBike::FEEDBACK;
                 retData.data = static_cast<int16_t>(axes[0]->encoder_.vel_estimate_);
-                retData.data2 = static_cast<int16_t>(axes[1]->encoder_.pos_estimate_);
+                retData.data2 = static_cast<int16_t>(axes[0]->motor_.current_control_.Iq_measured);
                 
                 binaryRespond(response_channel, &retData, sizeof(AutoBike::returnValue));
                 break; 
